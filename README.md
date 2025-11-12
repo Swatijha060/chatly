@@ -17,27 +17,6 @@ It enables real-time communication in groups with typing indicators, authenticat
 
 ---
 
-## 🏗️ Project Structure
 
-  chatly/
-│
-├── backend/                         # Express + MongoDB + Socket.io server
-│   ├── server.js                    # Entry point of the backend
-│   ├── config/                      # Database configuration
-│   ├── routes/                      # API route definitions
-│   ├── models/                      # Mongoose data models
-│   ├── middleware/                  # Authentication & error handlers
-│   └── package.json
-│
-├── frontend/                        # React + Chakra UI client
-│   ├── src/
-│   │   ├── pages/                   # Login, Register, Chats, Landing
-│   │   ├── components/              # Reusable UI components
-│   │   ├── App.jsx                  # Main app component
-│   │   └── index.js                 # React entry file
-│   └── package.json
-│
-├── .gitignore
-└── README.md
 
                   
