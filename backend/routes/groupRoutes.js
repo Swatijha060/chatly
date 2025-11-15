@@ -5,7 +5,7 @@ const groupRouter = express.Router();
 
 // Create a new group (Admin only)
 groupRouter.post('/', protect, isAdmin, async (req, res) => {
-  console.log('✅ Route hit: /api/groups');
+  console.log('Route hit: /api/groups');
   console.log('User:', req.user);
 
   try {
