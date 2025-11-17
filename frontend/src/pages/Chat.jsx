@@ -1,11 +1,12 @@
 
+
 import { useEffect, useState } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import Sidebar from "../components/Sidebar";
 import ChatArea from "../components/ChatArea";
 import io from "socket.io-client";
 
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://chatly-8w8p.onrender.com";
 
 const Chat = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -22,8 +23,8 @@ const Chat = () => {
       return;
     }
 
-    // Send both token and user separately
     const newSocket = io(ENDPOINT, {
+      transports: ["websocket"],
       auth: { token, user },
     });
 
@@ -56,6 +57,7 @@ const Chat = () => {
 };
 
 export default Chat;
+
 
 
 

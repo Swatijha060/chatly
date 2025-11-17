@@ -4,7 +4,7 @@ const setupSocket = (io) => {
   const userRooms = new Map(); // socketId -> roomId
 
   io.on("connection", (socket) => {
-    console.log("🔌 New socket connected:", socket.id);
+    console.log(" New socket connected:", socket.id);
 
     socket.on("register user", (user) => {
       if (user && user._id) {

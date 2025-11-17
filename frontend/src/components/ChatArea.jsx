@@ -21,10 +21,11 @@ import {
 import { FiSend, FiUsers, FiMessageCircle } from "react-icons/fi";
 import { useState, useRef, useEffect } from "react";
 import { keyframes } from "@emotion/react";
-import axios from "axios";
 import UsersList from "./UsersList";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+
+import API from "../utils/axios";
 
 const blink = keyframes`
   0%, 80%, 100% { opacity: 0; }
@@ -45,7 +46,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
 
   const currentUser = JSON.parse(localStorage.getItem("userInfo") || "{}");
   const currentUserId = currentUser?.user?._id || currentUser?._id;
-  const token = currentUser?.token;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,7 +70,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
     fetchMessages(groupId);
 
     const handleMessage = (newMsg) => {
-      // prevent duplicate for sender
       if (newMsg.sender._id === currentUserId) return;
 
       const container = messagesContainerRef.current;
@@ -79,7 +78,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
 
       setMessages((prev) => [...prev, newMsg]);
 
-      if (newMsg.sender._id !== currentUserId && !isAtBottom) {
+      if (!isAtBottom) {
         toast({
           title: `${newMsg.sender.username} sent a new message`,
           description: newMsg.content,
@@ -93,41 +92,36 @@ const ChatArea = ({ selectedGroup, socket }) => {
       if (isAtBottom) scrollToBottom();
     };
 
-    const handleRoomUsers = (users) => {
+    socket.on("message received", handleMessage);
+    socket.on("room users", (users) => {
       setConnectedUsers((users || []).filter((u) => u && u._id));
-    };
+    });
 
-    const handleTyping = (user) => {
+    socket.on("user typing", (user) => {
       if (user._id !== currentUserId) {
         setTypingUser(user.username);
         clearTimeout(window.typingTimeout);
         window.typingTimeout = setTimeout(() => setTypingUser(null), 2000);
       }
-    };
+    });
 
-    const handleStopTyping = () => setTypingUser(null);
-
-    socket.on("message received", handleMessage);
-    socket.on("room users", handleRoomUsers);
-    socket.on("user typing", handleTyping);
-    socket.on("user stop typing", handleStopTyping);
+    socket.on("user stop typing", () => setTypingUser(null));
 
     return () => {
       socket.emit("leave room", groupId);
       socket.off("message received", handleMessage);
-      socket.off("room users", handleRoomUsers);
-      socket.off("user typing", handleTyping);
-      socket.off("user stop typing", handleStopTyping);
+      socket.off("room users");
+      socket.off("user typing");
+      socket.off("user stop typing");
     };
   }, [selectedGroup?._id, socket]);
 
   // Fetch all messages
   const fetchMessages = async (groupId) => {
     try {
-      const { data } = await axios.get(
-        `http://localhost:5000/api/messages/${groupId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // UPDATED axios → API
+      const { data } = await API.get(`/api/messages/${groupId}`);
+
       setMessages(data.reverse());
     } catch (error) {
       toast({
@@ -162,20 +156,19 @@ const ChatArea = ({ selectedGroup, socket }) => {
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/messages",
-        { content: newMessage, groupId: selectedGroup._id },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // UPDATED axios → API
+      const { data } = await API.post(`/api/messages`, {
+        content: newMessage,
+        groupId: selectedGroup._id,
+      });
 
-      // Instantly show for sender only
       setMessages((prev) => [...prev, data]);
 
-      // Broadcast to others
       socket.emit("new message", { ...data, groupId: selectedGroup._id });
 
       setNewMessage("");
       setShowEmojiPicker(false);
+
       socket.emit("stop typing", { groupId: selectedGroup._id });
     } catch (error) {
       toast({
@@ -276,6 +269,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
                           {formatTime(message.createdAt)}
                         </Text>
                       </Flex>
+
                       <Box
                         bg={isOwn ? "purple.500" : "white"}
                         color={isOwn ? "white" : "gray.800"}
@@ -290,7 +284,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
                 })
               )}
 
-              {/* Typing Indicator */}
               {typingUser && (
                 <Flex align="center" pl={2}>
                   <Avatar size="xs" name={typingUser} mr={2} />
@@ -298,8 +291,21 @@ const ChatArea = ({ selectedGroup, socket }) => {
                     {typingUser} is typing
                     <Box as="span" ml={1}>
                       <Box as="span" animation={`${blink} 1s infinite`} mr="2px">.</Box>
-                      <Box as="span" animation={`${blink} 1s infinite`} sx={{ animationDelay: "0.2s" }} mr="2px">.</Box>
-                      <Box as="span" animation={`${blink} 1s infinite`} sx={{ animationDelay: "0.4s" }}>.</Box>
+                      <Box
+                        as="span"
+                        animation={`${blink} 1s infinite`}
+                        sx={{ animationDelay: "0.2s" }}
+                        mr="2px"
+                      >
+                        .
+                      </Box>
+                      <Box
+                        as="span"
+                        animation={`${blink} 1s infinite`}
+                        sx={{ animationDelay: "0.4s" }}
+                      >
+                        .
+                      </Box>
                     </Box>
                   </Text>
                 </Flex>
@@ -355,7 +361,6 @@ const ChatArea = ({ selectedGroup, socket }) => {
             </Box>
           </Box>
 
-          {/* Members Drawer */}
           <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
             <DrawerOverlay />
             <DrawerContent>
@@ -377,3 +382,4 @@ const ChatArea = ({ selectedGroup, socket }) => {
 };
 
 export default ChatArea;
+

@@ -1,4 +1,3 @@
-
 import {
   Box,
   VStack,
@@ -19,11 +18,10 @@ import {
   Icon,
   Badge,
   Tooltip,
-  Divider,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
-import axios from "axios";
+import API from "../utils/axios";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ setSelectedGroup }) => {
@@ -58,16 +56,10 @@ const Sidebar = ({ setSelectedGroup }) => {
 
   const fetchGroups = async () => {
     try {
-      const user = getStoredUser();
-      const token = user.token;
-      if (!token) return;
-
-      const { data } = await axios.get("http://localhost:5000/api/groups", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const { data } = await API.get("/api/groups");
       setGroups(data);
 
+      const user = getStoredUser();
       const userGroupIds = data
         ?.filter((group) =>
           group.members?.some((member) => member._id === user._id)
@@ -82,15 +74,10 @@ const Sidebar = ({ setSelectedGroup }) => {
 
   const createGroup = async () => {
     try {
-      const user = getStoredUser();
-      const token = user.token;
-      if (!token) return;
-
-      await axios.post(
-        "http://localhost:5000/api/groups",
-        { name: newGroupName, description: newGroupDescription },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.post("/api/groups", {
+        name: newGroupName,
+        description: newGroupDescription,
+      });
 
       toast({
         title: "Group created successfully!",
@@ -116,15 +103,7 @@ const Sidebar = ({ setSelectedGroup }) => {
 
   const handleJoinGroup = async (groupId) => {
     try {
-      const user = getStoredUser();
-      const token = user.token;
-      if (!token) return;
-
-      await axios.post(
-        `http://localhost:5000/api/groups/${groupId}/join`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.post(`/api/groups/${groupId}/join`);
 
       toast({
         title: "Joined group successfully!",
@@ -147,15 +126,7 @@ const Sidebar = ({ setSelectedGroup }) => {
 
   const handleLeaveGroup = async (groupId) => {
     try {
-      const user = getStoredUser();
-      const token = user.token;
-      if (!token) return;
-
-      await axios.post(
-        `http://localhost:5000/api/groups/${groupId}/leave`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await API.post(`/api/groups/${groupId}/leave`);
 
       toast({
         title: "Left group successfully!",
@@ -349,6 +320,4 @@ const Sidebar = ({ setSelectedGroup }) => {
 };
 
 export default Sidebar;
-
-
 

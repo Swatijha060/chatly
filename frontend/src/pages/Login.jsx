@@ -9,7 +9,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   Image,
   useToast,
   Link,
@@ -18,6 +17,9 @@ import { useState } from "react";
 import { FiLogIn, FiEye, FiEyeOff } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
+
+const API = "https://chatly-8w8p.onrender.com";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -41,17 +43,20 @@ const Login = () => {
 
     try {
       setLoading(true);
-      const { data } = await axios.post("http://localhost:5000/api/users/login", {
+      const { data } = await axios.post(`${API}/api/users/login`, {
         email,
         password,
       });
+
       localStorage.setItem("userInfo", JSON.stringify(data));
+
       toast({
-        title: "Login successful",
+        title: "Login successful!",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
+
       navigate("/chats");
     } catch (error) {
       toast({
@@ -83,7 +88,7 @@ const Login = () => {
         h={{ base: "auto", md: "550px" }}
         flexDir={{ base: "column", md: "row" }}
       >
-        {/* Left Section - Illustration */}
+        {/* Left - Illustration */}
         <Box
           flex="1"
           bg="purple.100"
@@ -110,7 +115,7 @@ const Login = () => {
           </Box>
         </Box>
 
-        {/* Right Section - Login Form */}
+        {/* Right - Login form */}
         <Box flex="1" p={{ base: 8, md: 12 }} display="flex" flexDir="column" justify="center">
           <Heading
             as="h2"
@@ -123,7 +128,7 @@ const Login = () => {
             Sign In to Chatly
           </Heading>
           <Text textAlign="center" color="gray.600" mb={8}>
-            Welcome back! Enter your details below to continue chatting.
+            Welcome back! Enter your details.
           </Text>
 
           <FormControl id="email" mb={5}>
@@ -132,7 +137,7 @@ const Login = () => {
             </FormLabel>
             <Input
               type="email"
-              placeholder="Enter your email "
+              placeholder="Enter your email"
               value={email}
               bg="gray.50"
               onChange={(e) => setEmail(e.target.value)}
@@ -155,10 +160,7 @@ const Login = () => {
                 focusBorderColor="purple.400"
               />
               <InputRightElement>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
+                <Button variant="ghost" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <FiEyeOff /> : <FiEye />}
                 </Button>
               </InputRightElement>
@@ -178,7 +180,7 @@ const Login = () => {
           </Button>
 
           <Text textAlign="center" mt={6} color="gray.600">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Link color="purple.600" fontWeight="medium" href="/register">
               Register now
             </Link>
@@ -190,6 +192,4 @@ const Login = () => {
 };
 
 export default Login;
-
-
 
